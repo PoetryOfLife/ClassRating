@@ -9,4 +9,5 @@ public class Class {
     public float art;
     public float practice;
     public int star;//1, 2, 3, 4, 5, 6
+    public String starName;
 }
