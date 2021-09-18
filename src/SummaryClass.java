@@ -14,7 +14,7 @@ import java.util.*;
 public class SummaryClass {
 
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, InterruptedException {
         SummaryClass summary = new SummaryClass();
         String dirPath = "./file/";
         File files = new File(dirPath);
@@ -32,6 +32,7 @@ public class SummaryClass {
                 }
             }
         }
+        Thread.sleep(2000);
     }
 
     public ArrayList<Class> HandelWord(String filePath) {
@@ -63,7 +64,7 @@ public class SummaryClass {
                                         // 获取当前事件分类
                                         String star = starList[starIndex - 1].substring(starList[starIndex - 1].length() - 3);
                                         //当前事件总分
-                                        float score = 0;
+                                        float score ;
                                         // 记录分类分数
                                         if (starList.length > 2) {
                                             if (starIndex != starList.length - 1) {
@@ -76,18 +77,25 @@ public class SummaryClass {
                                             score = HandleEvent(starList[starIndex]);
                                         }
 
-                                        if (star.equals("道德星")) {
-                                            cls.moral = score;
-                                        } else if (star.equals("阅读星")) {
-                                            cls.read = score;
-                                        } else if (star.equals("智慧星")) {
-                                            cls.wisdom = score;
-                                        } else if (star.equals("健康星")) {
-                                            cls.health = score;
-                                        } else if (star.equals("艺术星")) {
-                                            cls.art = score;
-                                        } else if (star.equals("实践星")) {
-                                            cls.practice = score;
+                                        switch (star) {
+                                            case "道德星":
+                                                cls.moral = score;
+                                                break;
+                                            case "阅读星":
+                                                cls.read = score;
+                                                break;
+                                            case "智慧星":
+                                                cls.wisdom = score;
+                                                break;
+                                            case "健康星":
+                                                cls.health = score;
+                                                break;
+                                            case "艺术星":
+                                                cls.art = score;
+                                                break;
+                                            case "实践星":
+                                                cls.practice = score;
+                                                break;
                                         }
                                     }
                                 }
@@ -190,11 +198,11 @@ public class SummaryClass {
             Sheet sheet = workBook.createSheet("sheet1");
 
             sheet.setDefaultColumnWidth(10);
-            Row row = sheet.createRow((int) 0);
+            Row row = sheet.createRow(0);
             CellStyle style = workBook.createCellStyle();
             style.setAlignment(HSSFCellStyle.ALIGN_CENTER);
 
-            Cell cell = null;
+            Cell cell;
             for (int i = 0; i < titles.length; i++) {
                 cell = row.createCell(i);
                 cell.setCellValue(titles[i]);
@@ -239,6 +247,7 @@ public class SummaryClass {
             e.printStackTrace();
         }
         workBook.write(fos);
+        assert fos != null;
         fos.close();
     }
 }
