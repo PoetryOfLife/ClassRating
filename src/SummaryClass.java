@@ -1,4 +1,5 @@
-import bean.Class;
+import bean.ClassRating;
+import bean.RoutineInspection;
 import org.apache.poi.hssf.usermodel.*;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -6,8 +7,10 @@ import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFTable;
 import org.apache.poi.xwpf.usermodel.XWPFTableCell;
 import org.apache.poi.xwpf.usermodel.XWPFTableRow;
+import services.FormatData;
 
 import java.io.*;
+import java.text.DecimalFormat;
 import java.util.*;
 
 
@@ -16,28 +19,38 @@ public class SummaryClass {
 
     public static void main(String[] args) throws IOException, InterruptedException {
         SummaryClass summary = new SummaryClass();
+        FormatData ft = new FormatData();
         String dirPath = "./file/";
         File files = new File(dirPath);
         File[] fileList = files.listFiles();
+
+        ArrayList<RoutineInspection> routineInspections = new ArrayList<>();
         if (fileList != null) {
+
             for (File file : fileList) {
                 if (file.getName().contains(".docx")) {
                     System.out.println("Start handle word file:" + file.getName());
-                    ArrayList<Class> classes = summary.HandelWord(dirPath + file.getName());
-                    String[] titles = summary.GetTitles();
-                    String excelFileName = file.getName().replace(".docx", ".xlsx");
-                    summary.ExportExcel(classes, titles, excelFileName);
-                    System.out.println("generate excel file:" + excelFileName);
-
+                    routineInspections.add(summary.HandelWord(dirPath, file.getName()));
                 }
             }
+
+            routineInspections.add(ft.SummaryInspection(routineInspections));
+
+            String[] titles = summary.GetTitles();
+            summary.ExportExcel(routineInspections, titles, "少先队日常规检查详情反馈.xlsx");
+
+        } else {
+            System.out.println("no file!");
         }
-        Thread.sleep(2000);
+        Thread.sleep(1000);
+
+
     }
 
-    public ArrayList<Class> HandelWord(String filePath) {
+    public RoutineInspection HandelWord(String dirPath, String fileName) {
+        String filePath = dirPath + fileName;
         try {
-            ArrayList<Class> classes = new ArrayList<>();
+            ArrayList<ClassRating> classRatings = new ArrayList<>();
             FileInputStream in = new FileInputStream(filePath);
             if (filePath.toLowerCase().endsWith("docx")) {
                 XWPFDocument xwpf = new XWPFDocument(in);
@@ -48,13 +61,13 @@ public class SummaryClass {
                     for (int i = 2; i < rows.size(); i++) {
                         XWPFTableRow row = rows.get(i);
                         List<XWPFTableCell> cells = row.getTableCells();
-                        Class cls = new Class();
+                        ClassRating cls = new ClassRating();
                         if (cells.size() < 2)
                             continue;
                         for (int j = 0; j < cells.size(); j++) {
                             XWPFTableCell cell = cells.get(j);
                             if (j == 0) {
-                                cls.name = cell.getText();
+                                cls.className = cell.getText();
                             } else {
                                 String content = cell.getText();
                                 if (!Objects.equals(content, "")) {
@@ -64,7 +77,7 @@ public class SummaryClass {
                                         // 获取当前事件分类
                                         String star = starList[starIndex - 1].substring(starList[starIndex - 1].length() - 3);
                                         //当前事件总分
-                                        float score ;
+                                        float score;
                                         // 记录分类分数
                                         if (starList.length > 2) {
                                             if (starIndex != starList.length - 1) {
@@ -119,11 +132,11 @@ public class SummaryClass {
                         if (cls.practice >= 0) {
                             cls.star++;
                         }
-                        classes.add(cls);
+                        classRatings.add(cls);
                     }
                 }
             }
-            return classes;
+            return new RoutineInspection(classRatings, fileName);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -190,57 +203,67 @@ public class SummaryClass {
         return num;
     }
 
-    public void ExportExcel(ArrayList<Class> classes, String[] titles, String filename) throws IOException {
+    public void ExportExcel(ArrayList<RoutineInspection> routineInspections, String[] titles, String filename) throws IOException {
         String xlsxPath = "./file/" + filename;
         Workbook workBook = new XSSFWorkbook();
+        DecimalFormat df = new DecimalFormat("0.00");
         OutputStream fos = null;
+
         try {
-            Sheet sheet = workBook.createSheet("sheet1");
 
-            sheet.setDefaultColumnWidth(10);
-            Row row = sheet.createRow(0);
-            CellStyle style = workBook.createCellStyle();
-            style.setAlignment(HSSFCellStyle.ALIGN_CENTER);
+            for (RoutineInspection routineInspection : routineInspections) {
+                Sheet sheet = workBook.createSheet(routineInspection.fileName);
+                sheet.setDefaultColumnWidth(10);
+                Row row = sheet.createRow(0);
+                CellStyle style = workBook.createCellStyle();
+                style.setAlignment(HSSFCellStyle.ALIGN_CENTER);
 
-            Cell cell;
-            for (int i = 0; i < titles.length; i++) {
-                cell = row.createCell(i);
-                cell.setCellValue(titles[i]);
-                cell.setCellStyle(style);
-            }
-
-            for (int i = 0; i < classes.size(); i++) {
-                row = sheet.createRow(i + 1);
-                row.createCell(0).setCellValue(classes.get(i).name);
-                row.createCell(1).setCellValue(classes.get(i).moral);
-                row.createCell(2).setCellValue(classes.get(i).read);
-                row.createCell(3).setCellValue(classes.get(i).wisdom);
-                row.createCell(4).setCellValue(classes.get(i).health);
-                row.createCell(5).setCellValue(classes.get(i).art);
-                row.createCell(6).setCellValue(classes.get(i).practice);
-                switch (classes.get(i).star) {
-                    case 1:
-                        row.createCell(7).setCellValue("一星班级");
-                        break;
-                    case 2:
-                        row.createCell(7).setCellValue("二星班级");
-                        break;
-                    case 3:
-                        row.createCell(7).setCellValue("三星班级");
-                        break;
-                    case 4:
-                        row.createCell(7).setCellValue("四星班级");
-                        break;
-                    case 5:
-                        row.createCell(7).setCellValue("五星班级");
-                        break;
-                    case 6:
-                        row.createCell(7).setCellValue("六星班级");
-                        break;
+                Cell cell;
+                for (int i = 0; i < titles.length; i++) {
+                    cell = row.createCell(i);
+                    cell.setCellValue(titles[i]);
+                    cell.setCellStyle(style);
                 }
 
+                ArrayList<ClassRating> classRatings = routineInspection.cr;
 
+                for (int i = 0; i < classRatings.size(); i++) {
+                    row = sheet.createRow(i + 1);
+                    row.createCell(0).setCellValue(classRatings.get(i).className);
+                    row.createCell(1).setCellValue(df.format(classRatings.get(i).moral));
+                    row.createCell(2).setCellValue(df.format(classRatings.get(i).read));
+                    row.createCell(3).setCellValue(df.format(classRatings.get(i).wisdom));
+                    row.createCell(4).setCellValue(df.format(classRatings.get(i).health));
+                    row.createCell(5).setCellValue(df.format(classRatings.get(i).art));
+                    row.createCell(6).setCellValue(df.format(classRatings.get(i).practice));
+
+
+                    switch (classRatings.get(i).star) {
+                        case 0:
+                            row.createCell(7).setCellValue("零星班级");
+                            break;
+                        case 1:
+                            row.createCell(7).setCellValue("一星班级");
+                            break;
+                        case 2:
+                            row.createCell(7).setCellValue("二星班级");
+                            break;
+                        case 3:
+                            row.createCell(7).setCellValue("三星班级");
+                            break;
+                        case 4:
+                            row.createCell(7).setCellValue("四星班级");
+                            break;
+                        case 5:
+                            row.createCell(7).setCellValue("五星班级");
+                            break;
+                        case 6:
+                            row.createCell(7).setCellValue("六星班级");
+                            break;
+                    }
+                }
             }
+
             fos = new FileOutputStream(xlsxPath);
         } catch (FileNotFoundException e) {
             // TODO Auto-generated catch block
