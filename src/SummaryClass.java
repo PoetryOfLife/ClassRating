@@ -77,7 +77,7 @@ public class SummaryClass {
                                         // 获取当前事件分类
                                         String star = starList[starIndex - 1].substring(starList[starIndex - 1].length() - 3);
                                         //当前事件总分
-                                        float score;
+                                        double score;
                                         // 记录分类分数
                                         if (starList.length > 2) {
                                             if (starIndex != starList.length - 1) {
@@ -156,7 +156,7 @@ public class SummaryClass {
         return titles;
     }
 
-    public float HandleEvent(String str) {
+    public double HandleEvent(String str) {
         String[] events = str.split(" ");
         List<String> list = new ArrayList<>();
         for (String event : events) {
@@ -164,16 +164,16 @@ public class SummaryClass {
                 list.add(event);
             }
         }
-        float score = 0;
+        double score = 0;
         for (String event : list) {
             score += EventScore(event);
         }
         return score;
     }
 
-    public float EventScore(String event) {
+    public double EventScore(String event) {
         StringBuilder numStr = new StringBuilder();
-        float num = 0;
+        double num = 0;
         for (int i = 0; i < event.length(); i++) {
             char b = event.charAt(i);
             if (i != event.length() - 1) {
@@ -184,7 +184,7 @@ public class SummaryClass {
                         if (b == '.' || (b >= '0' && b <= '9')) {
                             numStr.append(b);
                         } else {
-                            num += Float.parseFloat(numStr.toString());
+                            num += Double.parseDouble(numStr.toString());
                             numStr = new StringBuilder();
                         }
                     }
@@ -195,7 +195,7 @@ public class SummaryClass {
                         numStr.append(b);
 
                     }
-                    num += Float.parseFloat(numStr.toString());
+                    num += Double.parseDouble(numStr.toString());
                     numStr = new StringBuilder();
                 }
             }
@@ -230,13 +230,19 @@ public class SummaryClass {
                 for (int i = 0; i < classRatings.size(); i++) {
                     row = sheet.createRow(i + 1);
                     row.createCell(0).setCellValue(classRatings.get(i).className);
-                    row.createCell(1).setCellValue(df.format(classRatings.get(i).moral));
-                    row.createCell(2).setCellValue(df.format(classRatings.get(i).read));
-                    row.createCell(3).setCellValue(df.format(classRatings.get(i).wisdom));
-                    row.createCell(4).setCellValue(df.format(classRatings.get(i).health));
-                    row.createCell(5).setCellValue(df.format(classRatings.get(i).art));
-                    row.createCell(6).setCellValue(df.format(classRatings.get(i).practice));
+//                    row.createCell(1).setCellValue(df.format(classRatings.get(i).moral));
+//                    row.createCell(2).setCellValue(df.format(classRatings.get(i).read));
+//                    row.createCell(3).setCellValue(df.format(classRatings.get(i).wisdom));
+//                    row.createCell(4).setCellValue(df.format(classRatings.get(i).health));
+//                    row.createCell(5).setCellValue(df.format(classRatings.get(i).art));
+//                    row.createCell(6).setCellValue(df.format(classRatings.get(i).practice));
 
+                    row.createCell(1).setCellValue(classRatings.get(i).moral);
+                    row.createCell(2).setCellValue(classRatings.get(i).read);
+                    row.createCell(3).setCellValue(classRatings.get(i).wisdom);
+                    row.createCell(4).setCellValue(classRatings.get(i).health);
+                    row.createCell(5).setCellValue(classRatings.get(i).art);
+                    row.createCell(6).setCellValue(classRatings.get(i).practice);
 
                     switch (classRatings.get(i).star) {
                         case 0:

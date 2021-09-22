@@ -15,12 +15,12 @@ public class FormatData {
         }
 
         ArrayList<ClassRating> classRatings = new ArrayList<>();
-        SortedMap<String, float[]> summary = new TreeMap<>();
+        SortedMap<String, double[]> summary = new TreeMap<>();
         for (RoutineInspection routineInspection : routineInspections) {
             for (ClassRating classRating : routineInspection.cr) {
-                float[] rating = summary.get(classRating.className);
+                double[] rating = summary.get(classRating.className);
                 if (rating == null) {
-                    rating = new float[6];
+                    rating = new double[6];
                 }
                 rating[0] += classRating.moral;
                 rating[1] += classRating.read;
@@ -32,7 +32,7 @@ public class FormatData {
             }
         }
 
-        for (Map.Entry<String, float[]> entry : summary.entrySet()) {
+        for (Map.Entry<String, double[]> entry : summary.entrySet()) {
             ClassRating classRating = new ClassRating();
             classRating.className = entry.getKey();
             classRating.moral = entry.getValue()[0];
